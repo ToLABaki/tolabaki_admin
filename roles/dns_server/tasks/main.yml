@@ -1,0 +1,46 @@
+---
+- name: Transfer docker-compose project to remote project path
+  synchronize:
+    src: docker/
+    dest: "{{ docker_compose_projects_path }}/dns_server"
+    recursive: True
+    delete: True
+
+- name: Create bind9 zones directory
+  file:
+    path: /etc/bind/zones
+    state: directory
+
+- name: Transfer bind9 zone files
+  synchronize:
+    src: zones/
+    dest: /etc/bind/zones
+    recursive: True
+    delete: True
+
+- name: Generate named.conf.zones
+  copy:
+    content: |
+      {% for z in zones %}
+      zone "{{ z }}" {
+        type master;
+        file "/etc/bind/zones/db.{{ z }}";
+      };
+      {% endfor %}
+    dest: /etc/bind/zones/named.conf.zones
+  vars:
+    zones:
+      - tolabaki.gr
+      - hwmn.org
+
+- name: Start bind9 docker image
+  docker_service:
+    project_src: "{{ docker_compose_projects_path }}/dns_server"
+    state: present
+    pull: yes
+    build: yes
+
+- name: Ensure dns server is bound on port 53
+  wait_for:
+    port: 53
+    timeout: 20

@@ -1,0 +1,5 @@
+---
+- hosts: dns_server
+  become: yes
+  roles:
+    - dns_server
