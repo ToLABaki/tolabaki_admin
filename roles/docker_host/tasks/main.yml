@@ -7,8 +7,3 @@
     state: directory
     path: "{{ docker_compose_projects_path }}"
     mode: 0700
-
-- name: Ensure rsync is installed
-  apt:
-    name: rsync
-    state: present
