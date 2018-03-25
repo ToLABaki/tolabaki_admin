@@ -1,0 +1,8 @@
+---
+- name: Install OpenSSL and OpenVPN
+  apt:
+  name: "{{ item }}"
+  state: present
+  with_items:
+    - openssl
+    - openvpn

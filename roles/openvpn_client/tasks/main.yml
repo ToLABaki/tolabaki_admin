@@ -1,0 +1,12 @@
+---
+- name: Install required packages
+  import_tasks: apt.yml
+
+- name: Synchronize consolidated OpenVPN configuration
+  synchronize:
+    src: /etc/openvpn/keys/{{ inventory_hostname }}.ovpn
+    dest: /etc/openvpn/client/{{ inventory_hostname }}.conf
+  delegate_to: "{{ openvpn_server }}"
+
+- name: Restart openvpn service
+  systemd: state=restarted name=openvpn@client
