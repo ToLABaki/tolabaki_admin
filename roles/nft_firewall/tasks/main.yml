@@ -1,0 +1,5 @@
+---
+- name: Transfer nftables.conf
+  copy:
+    src: "{{ inventory_hostname }}/nftables.conf"
+    dest: /etc/nftables.conf

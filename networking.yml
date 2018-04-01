@@ -1,0 +1,5 @@
+---
+- hosts: nft_firewall
+  become: yes
+  roles:
+    - nft_firewall
