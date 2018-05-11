@@ -34,7 +34,7 @@
 - name: Install docker.
   apt:
     name: "{{ item }}"
-    state: present
+    state: latest
   with_items:
     - docker-ce
     - docker-compose
