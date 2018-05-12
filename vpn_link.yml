@@ -1,0 +1,119 @@
+---
+- hosts: vpn_link_server
+  become: yes
+  vars:
+    easy_rsa_symlink_hack: true
+    openvpn_use_system_easyrsa: true
+    openvpn_service: openvpn@server
+    openvpn_host: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
+    openvpn_dev: tap0
+    openvpn_bridge:
+      address: "{{openvpn_bridge_subnet}}.1"
+      netmask: 255.255.255.0
+      network: "{{openvpn_bridge_subnet}}.0"
+      broadcast: "{{openvpn_bridge_subnet}}.255"
+      dhcp_start: "{{openvpn_bridge_subnet}}.200"
+      dhcp_end: "{{openvpn_bridge_subnet}}.250"
+    openvpn_max_clients: 50
+    openvpn_cipher: AES-128-GCM
+    openvpn_key_country: GR
+    openvpn_key_province: Crete
+    openvpn_key_city: Heraklion
+    openvpn_key_org: toLABaki
+    openvpn_key_email: admin@tolabaki.gr
+    openvpn_key_size: 2048
+    openvpn_use_pam: no
+    openvpn_clients: [vpn_link, admin]
+  tasks:
+    # ensure easy-rsa will work with openssl 1.1.0
+    - block:
+      - name: Create /usr/share/easy-rsa/
+        file:
+          path: /usr/share/easy-rsa
+          state: directory
+      - name: Create openssl.cnf symlink
+        file:
+          path: /usr/share/easy-rsa/openssl.cnf
+          state: link
+          src: openssl-1.0.0.cnf
+          force: yes
+      when: easy_rsa_symlink_hack
+      tags: hack
+
+    # ensure ifupdown won't complain when restarting networking.service
+    - block:
+      - name: Install ifconfig
+        apt:
+          name: net-tools
+          state: present
+      - name: Ensure openvpn service is stopped
+        systemd:
+          name: "{{ openvpn_service }}"
+          state: stopped
+        ignore_errors: yes
+
+    # Override openvpn_service because Stouts.openvpn loads it with include_vars
+    # and overrides our play variable
+    # http://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html#variable-precedence-where-should-i-put-a-variable
+    - name: enforce openvpn_service
+      set_fact:
+        openvpn_service: "{{ openvpn_service }}"
+
+    - name: Run Stouts.openvpn
+      import_role:
+        name: Stouts.openvpn
+
+    # because Stouts.openvpn writes tap0 instead of tap even on the client config
+    # and rename to .conf because debian's systemd service wants a .conf
+    - name: Fix client conf file
+      shell: sed -e s/{{ openvpn_dev }}/tap/g /etc/openvpn/keys/{{ item }}.ovpn > /etc/openvpn/keys/{{ item }}.conf
+      with_items:
+        - "{{ openvpn_clients }}"
+      tags: client_conf
+
+    - name: Fetch CA certificate
+      fetch:
+        src: /etc/openvpn/keys/{{ item[1] }}
+        dest: certs/{{ item[0] }}/{{ item[1] }}
+        flat: yes
+      with_nested:
+        - "{{ openvpn_clients }}"
+        - ['ca.crt']
+      tags: client_conf
+
+    - name: Fetch client key, certificate and conf
+      fetch:
+        src: /etc/openvpn/keys/{{ item[0] }}.{{ item[1] }}
+        dest: certs/{{ item[0] }}/{{ item[0] }}.{{ item[1] }}
+        flat: yes
+      with_nested:
+        - "{{ openvpn_clients }}"
+        - ['key', 'crt', 'conf']
+      tags: client_conf
+
+- hosts: vpn_link_client
+  become: yes
+  vars:
+    openvpn_client_name: vpn_link
+  tasks:
+    - name: Install required packages
+      apt: name={{ item }} update_cache=yes state=latest force=yes
+      with_items:
+        - openssl
+        - openvpn
+
+    - name: Upload client keys and certificate
+      copy:
+        src: certs/{{ openvpn_client_name }}/{{ item }}
+        dest: /etc/openvpn/{{ item }}
+      with_items:
+        - ca.crt
+        - "{{ openvpn_client_name }}.crt"
+        - "{{ openvpn_client_name }}.key"
+        - "{{ openvpn_client_name }}.conf"
+
+    - name: Restart openvpn service
+      systemd:
+        name: openvpn@{{ openvpn_client_name }}
+        state: started
+        enabled: yes
