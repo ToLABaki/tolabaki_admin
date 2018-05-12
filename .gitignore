@@ -1,2 +1,9 @@
 *.retry
+.vagrant
+
+# created by vpn_link.yml
+certs
+
+# downloaded roles
+roles/Stouts.openvpn
 
