@@ -54,9 +54,15 @@ We are using ansible for administering our services.
 
 ## Playbooks
 
-* All playbooks should be in the ``playbooks`` directory.
+* All playbooks should be in the top level directory.
 * No playbook should refer to a host by its host name. Instead, add an alias
 in the ``hosts`` file based on the host's role. This is done to avoid exposing
 which host actually runs which service in the unencrypted files.
-* Run ansible-playbook in the top level directory, not in the playbooks directory:
-```ansible-playbook playbooks/foobar.yml```
+
+## Testing
+
+* Tests for each playbook should be defined in tests/<playbook_name>
+* Normally we test with vagrant:
+ * ```vagrant up``` -> everything should be deployed
+ * ```vagrant ssh``` -> gain access to the VM and see what ansible did
+ * ```vagrant destroy -f``` -> tear down the VM
