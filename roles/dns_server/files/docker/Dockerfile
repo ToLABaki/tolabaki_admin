@@ -11,5 +11,6 @@ RUN mkdir -m 0750 -p /etc/bind ; \
     chown -R root:named /etc/bind
 
 COPY configs/. /etc/bind/
+COPY --chown=100:101 _acme-challenge.tolabaki.gr /var/bind/
 
 CMD ["named", "-c", "/etc/bind/named.conf", "-g", "-u", "named"]
