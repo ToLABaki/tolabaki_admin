@@ -1,0 +1,15 @@
+---
+- name: Copy DNS TSIG key, dehydrated DNS hook script and config
+  synchronize:
+    archive: no
+    checksum: yes
+    src: dehydrated_deps/
+    dest: /etc/dehydrated/
+
+- name: Change ownership and access modes of dehydrated files
+  file:
+    path: /etc/dehydrated/
+    recurse: yes
+    owner: root
+    group: root
+    mode: u+rwX,go-rwx
