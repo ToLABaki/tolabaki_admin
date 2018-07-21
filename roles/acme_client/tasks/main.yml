@@ -1,0 +1,10 @@
+---
+- name: Install dehydrated and it's dependencies
+  import_tasks: installation.yml
+  tags:
+    - installation
+
+- name: Deploy configuration
+  import_tasks: configuration.yml
+  tags:
+    - configuration

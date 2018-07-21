@@ -1,0 +1,7 @@
+---
+- hosts: dns_server
+  become: yes
+  vars:
+    dehydrated_version: "0.6.2"
+  roles:
+    - acme_client

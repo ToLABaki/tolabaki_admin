@@ -1,0 +1,68 @@
+---
+- name: Install dependencies.
+  apt:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - dnsutils
+    - openssl
+    - curl
+    - gnupg
+
+- name: Download dehydrated archive and signature from GitHub releases
+  get_url:
+    url: https://github.com/lukas2511/dehydrated/releases/download/v{{ dehydrated_version }}/{{ item }}
+    dest: /tmp
+  with_items:
+    - "dehydrated-{{ dehydrated_version }}.tar.gz"
+    - "dehydrated-{{ dehydrated_version }}.tar.gz.asc"
+
+- name: Create folder for temporary gpg keyring
+  file:
+    path: /tmp/gpg-tmp
+    state: directory
+    owner: "root"
+    group: "root"
+    mode: 0700
+
+- name: Download GPG key 0xF438F333 from sks-keyservers
+  shell: >
+    gpg
+    --no-default-keyring
+    --homedir /tmp/gpg-tmp
+    --keyring /tmp/gpg-tmp/tmp_keyring.kbx
+    --keyserver hkp://pool.sks-keyservers.net
+    --recv-keys F438F333
+
+# Note: The GPG manpage states that:
+#  0 is returned "if everything was fine",
+#  1 is returned "1 if at least a signature was bad",
+#  ... and >=2 for any other issues,
+# so Ansible's default behaviour of fail when not 0
+# is okay here.
+- name: Verify file with downloaded signature and imported key
+  shell: >
+    gpg
+    --no-default-keyring
+    --homedir /tmp/gpg-tmp
+    --keyring /tmp/gpg-tmp/tmp_keyring.kbx
+    --verify /tmp/dehydrated-{{ dehydrated_version }}.tar.gz.asc /tmp/dehydrated-{{ dehydrated_version }}.tar.gz
+
+- name: Extract archive
+  unarchive:
+    src: /tmp/dehydrated-{{ dehydrated_version }}.tar.gz
+    dest: /tmp/
+    remote_src: yes
+
+- name: Copy script to /usr/local/bin
+  copy:
+    src: /tmp/dehydrated-{{ dehydrated_version }}/dehydrated
+    dest: /usr/local/bin/dehydrated
+    remote_src: yes
+
+- name: Make dehydrated executable
+  file:
+    path: /usr/local/bin/dehydrated
+    mode: u=rwx,go=rx
+  tags:
+    - installation
