@@ -8,3 +8,4 @@ services:
       - "53:53"
     volumes:
       - /etc/bind/:/etc/bind/
+      - /var/log/named:/var/log/named
