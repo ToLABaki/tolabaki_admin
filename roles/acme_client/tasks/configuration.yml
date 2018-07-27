@@ -3,7 +3,7 @@
   synchronize:
     archive: no
     checksum: yes
-    src: dehydrated_deps/
+    src: dehydrated_cfg/
     dest: /etc/dehydrated/
 
 - name: Change ownership and access modes of dehydrated files
