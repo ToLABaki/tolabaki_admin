@@ -6,15 +6,18 @@
     recursive: True
     delete: True
 
-- name: Create bind9 zones directory
+- name: Create bind9 directories
   file:
-    path: /etc/bind/zones
+    path: "{{ item }}"
     state: directory
+  with_items:
+    - "/etc/bind/"
+    - "/etc/bind/zones/"
 
-- name: Transfer bind9 zone files
+- name: Transfer bind9 configuration files
   synchronize:
-    src: zones/
-    dest: /etc/bind/zones
+    src: bind_config/
+    dest: /etc/bind/
     recursive: True
     delete: True
 
