@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+#
+# Example how to deploy a DNS challenge using nsupdate
+# Taken from
+# https://github.com/lukas2511/dehydrated/wiki/example-dns-01-nsupdate-script
+#
+
+set -e
+set -u
+set -o pipefail
+
+NSUPDATE="nsupdate -k {{ hook_private_key_path }}"
+DNSSERVER="{{ hook_dns_server }}"
+TTL=300
+
+case "$1" in
+    "deploy_challenge")
+        printf "server %s\nupdate add _acme-challenge.%s. %d in TXT \"%s\"\nsend\n" "${DNSSERVER}" "${2}" "${TTL}" "${4}" | $NSUPDATE
+        ;;
+    "clean_challenge")
+        printf "server %s\nupdate delete _acme-challenge.%s. %d in TXT \"%s\"\nsend\n" "${DNSSERVER}" "${2}" "${TTL}" "${4}" | $NSUPDATE
+        ;;
+    "deploy_cert")
+        # do nothing for now
+        ;;
+    "unchanged_cert")
+        # do nothing for now
+        ;;
+    "startup_hook")
+        # do nothing for now
+        ;;
+    "exit_hook")
+        # do nothing for now
+        ;;
+esac
+
+exit 0

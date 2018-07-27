@@ -1,10 +1,28 @@
 ---
-- name: Copy DNS TSIG key, dehydrated DNS hook script and config
+- name: Copy DNS TSIG key
   synchronize:
     archive: no
     checksum: yes
-    src: dehydrated_cfg/
-    dest: /etc/dehydrated/
+    src: dehydrated_cfg/Kdnsupdatekey.private
+    dest: "{{ hook_private_key_path }}"
+
+- name: Generate domains.txt
+  copy:
+    content: |
+      {% for name in names %}
+      {{ name }}
+      {% endfor %}
+    dest: /etc/dehydrated/domains.txt
+
+- name: Generate dns01hook script
+  template:
+    src: dns01hook.bash.j2
+    dest: "{{ cfg_hook_script_path }}"
+
+- name: Generate dehydrated config file
+  template:
+    src: config.j2
+    dest: /etc/dehydrated/config
 
 - name: Change ownership and access modes of dehydrated files
   file:
