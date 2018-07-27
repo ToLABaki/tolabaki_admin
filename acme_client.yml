@@ -3,5 +3,12 @@
   become: yes
   vars:
     dehydrated_version: "0.6.2"
+    cfg_ca_api_endpoint: "https://acme-v02.api.letsencrypt.org/directory"
+    cfg_hook_script_path: "/etc/dehydrated/dns01hook.bash"
+    cfg_email: "admin@tolabaki.gr"
+    hook_private_key_path: "/etc/dehydrated/Kdnsupdatekey.private"
+    hook_dns_server: "ns0.tolabaki.gr"
+    names:
+      - "tolabaki.gr *.tolabaki.gr"
   roles:
     - acme_client
