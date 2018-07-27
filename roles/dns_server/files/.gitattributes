@@ -1,1 +1,1 @@
-zones/*		filter=git-crypt diff=git-crypt
+bind_config/zones/*		filter=git-crypt diff=git-crypt
