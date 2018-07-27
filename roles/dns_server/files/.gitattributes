@@ -1,2 +1,1 @@
 zones/*		filter=git-crypt diff=git-crypt
-docker/_acme-challenge.tolabaki.gr  filter=git-crypt diff=git-crypt
