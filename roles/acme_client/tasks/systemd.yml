@@ -7,15 +7,17 @@
     sd_timer
 
 - name: Create systemd service for dehydrated
-  template:
-    src: dehydrated.service.j2
+  synchronize:
+    archive: no
+    checksum: yes
+    src: dehydrated.service
     dest: /etc/systemd/system/dehydrated.service
   register:
     sd_service
 
 - name: Enable systemd timer
   systemd:
-    name: dehydrater.timer
+    name: dehydrated.timer
     daemon_reload: yes
     enabled: yes
   when: sd_timer.changed or sd_service.changed
