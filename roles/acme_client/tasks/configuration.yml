@@ -18,6 +18,7 @@
   template:
     src: dns01hook.bash.j2
     dest: "{{ cfg_hook_script_path }}"
+  mode: 0700
 
 - name: Generate dehydrated config file
   template:
