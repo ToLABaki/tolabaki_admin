@@ -1,0 +1,27 @@
+---
+- name: Disable networking.service
+  systemd:
+    name: networking
+    enabled: no
+
+- name: Enable systemd networking services
+  systemd:
+    name: "{{ item }}"
+    enabled: yes
+  with_items:
+    - systemd-networkd
+    - systemd-resolved
+
+- name: ln resolv.conf
+  file:
+    name: /etc/resolv.conf
+    state: link
+    src: /run/systemd/resolve/resolv.conf
+    force: yes
+
+- name: write network file
+  template:
+    src: 01-eth.network.j2
+    dest: /etc/systemd/network/01-eth.network
+    owner: systemd-network
+    group: adm
