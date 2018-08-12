@@ -10,3 +10,6 @@ max_line_length = off
 [Vagrantfile,*.yml]
 indent_style = space
 indent_size = 2
+
+[roles/dns_server/files/bind_config/zones/*]
+indent_size = 8
