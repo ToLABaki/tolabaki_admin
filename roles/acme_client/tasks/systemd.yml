@@ -15,9 +15,10 @@
   register:
     sd_service
 
-- name: Enable systemd timer
+- name: Enable and start systemd timer
   systemd:
     name: dehydrated.timer
     daemon_reload: yes
     enabled: yes
+    state: restarted
   when: sd_timer.changed or sd_service.changed
