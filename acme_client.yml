@@ -10,5 +10,6 @@
     hook_dns_server: "ns0.tolabaki.gr"
     names:
       - "tolabaki.gr *.tolabaki.gr"
+      - "test.tolabaki.gr *.test.tolabaki.gr"
   roles:
     - acme_client
