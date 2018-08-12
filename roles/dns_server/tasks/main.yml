@@ -34,6 +34,7 @@
   vars:
     zones:
       - tolabaki.gr
+	  - test.tolabaki.gr
       - hwmn.org
 
 - name: Start bind9 docker image
