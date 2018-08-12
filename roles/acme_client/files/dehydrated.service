@@ -1,0 +1,6 @@
+[Unit]
+Description=Renew ACME-derived certificates with dehydrated
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/dehydrated --cron

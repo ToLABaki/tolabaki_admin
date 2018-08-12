@@ -3,6 +3,8 @@ cfg_ca_api_endpoint: "https://acme-v02.api.letsencrypt.org/directory"
 cfg_hook_script_path: "/etc/dehydrated/dns01hook.bash"
 cfg_email: "admin@example.com"
 
+cfg_sd_timer_frequency: "weekly"
+
 hook_private_key_path: "/etc/dehydrated/Kdnsupdatekey.private"
 hook_dns_server: "ns.example.com"
 

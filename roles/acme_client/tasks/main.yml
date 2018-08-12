@@ -8,3 +8,8 @@
   import_tasks: configuration.yml
   tags:
     - configuration
+
+- name: Set up systemd service
+  import_tasks: systemd.yml
+  tags:
+    - systemd

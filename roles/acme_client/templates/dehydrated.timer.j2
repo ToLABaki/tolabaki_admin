@@ -1,0 +1,9 @@
+[Unit]
+Description=Run dehydrated ACME client
+
+[Timer]
+OnCalendar={{ cfg_sd_timer_frequency }}
+Persistent=true
+
+[Install]
+WantedBy=timers.target
