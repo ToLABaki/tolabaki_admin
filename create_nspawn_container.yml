@@ -1,0 +1,98 @@
+# ansible-playbook -e "machine_name=foo suite=bar ip_address=baz ip_gateway=zab" create_nspawn_container.yml
+---
+- hosts: nspawn_host
+  become: yes
+  vars:
+    suite: stable
+    machine_name: test
+    mirror: http://ftp.gr.debian.org/debian
+    ip_address: 192.168.1.100/24
+    ip_gateway: 192.168.1.1
+
+  tasks:
+  - name: debootstrap new machine
+    command: debootstrap {{ suite }} {{ machine_name }} {{ mirror }}
+    args:
+      chdir: /var/lib/machines
+      creates: /var/lib/machines/{{ machine_name }}
+
+  - name: disable ifupdown inside the new machine
+    file:
+      name: "{{ item }}"
+      state: absent
+    with_items:
+      - /var/lib/machines/{{ machine_name }}/etc/systemd/system/multi-user.target.wants/networking.service
+      - /var/lib/machines/{{ machine_name }}/etc/systemd/system/network-online.target.wants/networking.service
+    tags:
+      - networking
+
+  - name: enable networkd and resolved
+    file:
+      name: /var/lib/machines/{{ machine_name }}/etc/systemd/system/multi-user.target.wants/{{ item }}
+      state: link
+      src: /lib/systemd/system/{{ item }}
+      force: yes
+    with_items:
+      - systemd-networkd.service
+      - systemd-resolved.service
+    tags:
+      - networking
+  
+  - name: write network file
+    copy:
+      content: |
+        [Match]
+        Name=host0
+
+        [Network]
+        Address={{ ip_address }}
+        Gateway={{ ip_gateway }}
+      dest: /var/lib/machines/{{ machine_name }}/etc/systemd/network/01-host0.network
+    tags:
+      - networking
+
+  - name: temporarily change resolv.conf in new machine
+    copy:
+      content: "nameserver 8.8.8.8"
+      dest: /var/lib/machines/{{ machine_name }}/etc/resolv.conf
+    tags:
+      - complete_installation
+  
+  - name: install misc packages
+    command: systemd-nspawn -UD {{ machine_name }} apt-get -y install {{ item }}
+    args:
+      chdir: /var/lib/machines
+    with_items:
+      - dbus
+    tags:
+      - complete_installation
+
+  - name: ln resolv.conf
+    file:
+      name: /var/lib/machines/{{ machine_name }}/etc/resolv.conf
+      state: link
+      src: /run/systemd/resolve/resolv.conf
+      force: yes
+    tags:
+      - networking
+
+  - name: create host .nspawn file
+    copy:
+      content: |
+        [Exec]
+        Boot=on
+
+        [Network]
+        VirtualEthernet=on
+      dest: /etc/systemd/nspawn/{{ machine_name }}.nspawn
+
+  - name: Start new container (enable)
+    systemd:
+      daemon_reload: yes
+      name: systemd-nspawn@{{ machine_name }}
+      enabled: yes
+      state: started
+    delay: 4
+
+  - name: change hostname
+    command: hostnamectl --machine="{{ machine_name }}" set-hostname "{{ machine_name }}"
