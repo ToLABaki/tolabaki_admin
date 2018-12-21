@@ -41,6 +41,7 @@
   docker_service:
     project_src: "{{ docker_compose_projects_path }}/dns_server"
     state: present
+    restarted: yes
     pull: yes
     build: yes
 
