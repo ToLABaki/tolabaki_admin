@@ -1,5 +1,5 @@
 ---
-- name: Install dehydrated and it's dependencies
+- name: Install dehydrated and its dependencies
   import_tasks: installation.yml
   tags:
     - installation
