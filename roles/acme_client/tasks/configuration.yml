@@ -1,4 +1,9 @@
 ---
+- name: Make sure /etc/dehydrated dir exists
+  file:
+    path: /etc/dehydrated
+    state: directory
+
 - name: Copy DNS TSIG key
   synchronize:
     archive: no
